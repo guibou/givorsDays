@@ -1,0 +1,42 @@
+table
+{
+    border-collapse: collapse;
+}
+
+td
+{
+    width: 14.28%;
+    border: 1px solid lightgrey;
+    margin: 0;
+}
+
+td div.dayName
+{
+    white-space: nowrap;
+    font-size: 60%;
+}
+
+td div.combo
+{
+    text-align: center;
+}
+
+.day1, td select option[value="1"]
+{
+    background-color: lightgreen;
+}
+
+.day2, td select option[value="2"]
+{
+    background-color: yellow;
+}
+
+.day3, td select option[value="3"]
+{
+    background-color: orangered;
+}
+
+.day4, td select option[value="4"]
+{
+    background-color: red;
+}

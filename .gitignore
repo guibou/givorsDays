@@ -1,2 +1,8 @@
 *~
 .stack-work
+*.hi
+*_hi
+*_o
+*.o
+*.jsexe
+Main

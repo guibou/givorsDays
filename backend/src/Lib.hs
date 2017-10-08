@@ -49,13 +49,14 @@ mkApp = do
   calVar <- newMVar cal
 
   -- serve the API
-  let api = getCalendar calVar :<|> updateCalendar filename calVar
+  let api = getCalendar calVar :<|> getMonth calVar :<|> updateCalendar filename calVar
   return $ simpleCors (serve (Proxy @CalendarApi) api)
 
 -- * api
 
 type CalendarApi =
   "calendar" :> Get '[JSON] [(Day, Int)] :<|>
+  "month" :> Capture "year" Integer :> Capture "month" Int :> Get '[JSON] [(Day, Int)] :<|>
   "update" :> Capture "day" Day :> Capture "halfdays" Int :> Get '[JSON] ()
 
 -- * endpoints
@@ -66,6 +67,14 @@ getCalendar :: MVar Calendar -> Handler [(Day, Int)]
 getCalendar c = do
   Calendar cal <- liftIO (readMVar c)
   pure (Map.toList cal)
+
+getMonth :: MVar Calendar -> Integer -> Int -> Handler [(Day, Int)]
+getMonth c year month = do
+  Calendar cal <- liftIO (readMVar c)
+
+  let list = Map.toList cal
+      ret = filter (\(d, _) -> let (y, m, _) = toGregorian d in y == year && m == month) list
+  pure ret
 
 updateCalendar :: String -> MVar Calendar -> Day -> Int -> Handler ()
 updateCalendar filePath c day n = do

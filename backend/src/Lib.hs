@@ -24,6 +24,7 @@ import           Control.Monad (forever)
 import           Control.Concurrent (forkIO)
 import           Control.Concurrent.MVar
 import           System.IO.SafeWrite
+import           Network.Wai.Middleware.Cors
 
 -- * app
 
@@ -49,7 +50,7 @@ mkApp = do
 
   -- serve the API
   let api = getCalendar calVar :<|> updateCalendar filename calVar
-  return $ serve (Proxy @CalendarApi) api
+  return $ simpleCors (serve (Proxy @CalendarApi) api)
 
 -- * api
 

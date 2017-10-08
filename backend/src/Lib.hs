@@ -55,15 +55,17 @@ mkApp = do
 -- * api
 
 type CalendarApi =
-  "calendar" :> Get '[JSON] Calendar :<|>
+  "calendar" :> Get '[JSON] [(Day, Int)] :<|>
   "update" :> Capture "day" Day :> Capture "halfdays" Int :> Get '[JSON] ()
 
 -- * endpoints
+data Calendar = Calendar (Map.Map Day Int)
+  deriving (Generic, ToJSON, FromJSON, Show)
 
-getCalendar :: MVar Calendar -> Handler Calendar
+getCalendar :: MVar Calendar -> Handler [(Day, Int)]
 getCalendar c = do
-  cal <- liftIO (readMVar c)
-  pure cal
+  Calendar cal <- liftIO (readMVar c)
+  pure (Map.toList cal)
 
 updateCalendar :: String -> MVar Calendar -> Day -> Int -> Handler ()
 updateCalendar filePath c day n = do
@@ -77,9 +79,6 @@ updateCalendar filePath c day n = do
     pure newCal
 
 -- * model
-
-data Calendar = Calendar (Map.Map Day Int)
-  deriving (Generic, ToJSON, FromJSON, Show)
 
 updateDay day 0 (Calendar cal) = Calendar $ Map.delete day cal
 updateDay day n (Calendar cal) = Calendar $ Map.insert day n cal

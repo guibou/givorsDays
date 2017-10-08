@@ -11,6 +11,7 @@ import Data.List (groupBy)
 import Data.Function (on)
 import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
+import Data.Functor (($>))
 
 import qualified Data.Text as Text
 import Data.Text (Text)
@@ -104,6 +105,28 @@ header :: MonadWidget t m => m ()
 header = do
   el "title" $ text "Calendrier jours travaillés Givors"
   elAttr "link" (Map.fromList [("rel", "stylesheet"), ("type", "text/css"), ("href", "../default.css")]) blank
+
+
+loadCalendar :: MonadWidget t m
+                   => m (Event t Calendar)
+loadCalendar = do
+  pb <- getPostBuild
+  req <- getAndDecode (pb $> "http://localhost:8082/calendar")
+
+  let result = fmapMaybe id (traceEvent "CAL" req)
+
+  pure (Map.fromList <$> result)
+
+toReq :: (Day, Int) -> Text
+toReq (day, halfday) = "http://localhost:8082/update/" <> tShow day <> "/" <> tShow halfday
+
+sendUpdates :: MonadWidget t m
+            => Event t (Day, Int)
+            -> m (Event t ())
+sendUpdates e = do
+  res <- getAndDecode (toReq <$> e)
+
+  pure (fromMaybe () <$> res)
 
 main :: IO ()
 main = mainWidgetWithHead header $

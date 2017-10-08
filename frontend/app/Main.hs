@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE TupleSections #-}
 
 import Data.Traversable (for)
 import Data.Foldable (for_)
@@ -97,10 +98,6 @@ updateCal (day, n) cal = Map.insert day n cal
 readCal :: Calendar -> Day -> Int
 readCal calendar day = fromMaybe 0 $ Map.lookup day calendar
 
--- For test, initial value, will be loaded by XHR request
-initCalendar :: Calendar
-initCalendar = Map.singleton (fromGregorian 2017 10 1) 4
-
 header :: MonadWidget t m => m ()
 header = do
   el "title" $ text "Calendrier jours travaillés Givors"
@@ -113,7 +110,7 @@ loadCalendar = do
   pb <- getPostBuild
   req <- getAndDecode (pb $> "http://localhost:8082/calendar")
 
-  let result = fmapMaybe id (traceEvent "CAL" req)
+  let result = fmapMaybe id req
 
   pure (Map.fromList <$> result)
 
@@ -135,14 +132,18 @@ main = mainWidgetWithHead header $
       text "Calendrier "
       monthSelectWidget
 
-    -- Here there is kind of a dangerous loop. *currentCal* is input
-    -- and output of *makeCalendar*
-    currentCal <- foldDyn updateCal initCalendar updates
+    xhrCalendar <- loadCalendar
+
+    let updatesEvents = updateCal <$> updates
+    currentCal' <- foldDyn ($) Map.empty (leftmost [const <$> xhrCalendar, updatesEvents])
+    currentCal <- holdUniqDyn currentCal'
+
     updates <- makeCalendar currentMonth currentCal
+
+    _ <- sendUpdates updates
 
     el "h2" $ text "Résumé"
     _ <- elClass "div" "report" $ dyn (makeResume <$> currentCal)
-
     blank
 
 -- | A month selection widget composed of a year input and month input
@@ -199,22 +200,22 @@ calendarCell :: MonadWidget t m
              -> Dynamic t Calendar -- ^ The current calendar (will be sampled to know the day value)
              -> m (Event t (Day, Int)) -- ^ Day modification event
 calendarCell currentDay dynCalendar = mdo
-  initialValue <- readCal <$> sample (current dynCalendar) <*> sample (current currentDay)
-
   let
-    currentValue = attachWith readCal (current dynCalendar) (updated currentDay)
+    currentValue = readCal <$> dynCalendar <*> currentDay
 
   -- the td class depends on the value of the comboBox, as dayX where X is the value of the combobox
-  dd <- elDynClass "td" (dayClassName <$> value dd) $ do
+  dd <- elDynClass "td" (dayClassName . read . Text.unpack <$> value dd) $ do
     -- Name of the day, usually a number, but first of month (and first of year) are special
     elClass "div" "dayName" $ dynText (getDayLabel <$> currentDay)
 
-    elClass "div" "combo" $ do
-      let possiblesValues = constDyn $ Map.fromList (map (\x -> (x, tShow x)) [0..4])
-      dropdown initialValue possiblesValues (def { _dropdownConfig_setValue = currentValue })
+    elClass "div" "combo" $
+      --let possiblesValues = constDyn $ Map.fromList (map (\x -> (x, tShow x)) [0..4])
+      --dropdown 0 possiblesValues (def { _dropdownConfig_setValue = updated currentValue })
+      textInput (def & (textInputConfig_setValue .~ (tShow <$> updated currentValue)) & (textInputConfig_initialValue .~ "0"))
 
   -- the change event will result in a calendar modification event
-  pure (attach (current currentDay) (_dropdown_change dd))
+  -- pure ((fromGregorian 1000 1 1,) . (read . Text.unpack) <$> _textInput_input dd)
+  pure (attach (current currentDay) (read . Text.unpack <$> _textInput_input dd))
 
 -- * Report
 

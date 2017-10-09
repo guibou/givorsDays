@@ -101,7 +101,7 @@ readCal calendar day = fromMaybe 0 $ Map.lookup day calendar
 header :: MonadWidget t m => m ()
 header = do
   el "title" $ text "Calendrier jours travaillés Givors"
-  elAttr "link" (Map.fromList [("rel", "stylesheet"), ("type", "text/css"), ("href", "../default.css")]) blank
+  elAttr "link" (Map.fromList [("rel", "stylesheet"), ("type", "text/css"), ("href", "default.css")]) blank
 
 
 loadCalendar :: MonadWidget t m

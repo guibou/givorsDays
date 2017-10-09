@@ -135,8 +135,7 @@ main = mainWidgetWithHead header $
     xhrCalendar <- loadCalendar
 
     let updatesEvents = updateCal <$> updates
-    currentCal' <- foldDyn ($) Map.empty (leftmost [const <$> xhrCalendar, updatesEvents])
-    currentCal <- holdUniqDyn currentCal'
+    currentCal <- foldDyn ($) Map.empty (leftmost [const <$> xhrCalendar, updatesEvents])
 
     updates <- makeCalendar currentMonth currentCal
 
@@ -204,18 +203,31 @@ calendarCell currentDay dynCalendar = mdo
     currentValue = readCal <$> dynCalendar <*> currentDay
 
   -- the td class depends on the value of the comboBox, as dayX where X is the value of the combobox
-  dd <- elDynClass "td" (dayClassName . read . Text.unpack <$> value dd) $ do
+  (value, event) <- elDynClass "td" (dayClassName  <$> value) $ do
     -- Name of the day, usually a number, but first of month (and first of year) are special
     elClass "div" "dayName" $ dynText (getDayLabel <$> currentDay)
 
-    elClass "div" "combo" $
-      --let possiblesValues = constDyn $ Map.fromList (map (\x -> (x, tShow x)) [0..4])
-      --dropdown 0 possiblesValues (def { _dropdownConfig_setValue = updated currentValue })
-      textInput (def & (textInputConfig_setValue .~ (tShow <$> updated currentValue)) & (textInputConfig_initialValue .~ "0"))
+    elClass "div" "combo" $ do
+      widgetIntSelectorText currentValue
 
-  -- the change event will result in a calendar modification event
-  -- pure ((fromGregorian 1000 1 1,) . (read . Text.unpack) <$> _textInput_input dd)
-  pure (attach (current currentDay) (read . Text.unpack <$> _textInput_input dd))
+  pure (attach (current currentDay) event)
+
+widgetIntSelectorCombo :: MonadWidget t m
+                  => Dynamic t Int
+                  -> m (Dynamic t Int, Event t Int)
+widgetIntSelectorCombo currentValue = do
+      let possiblesValues = constDyn $ Map.fromList (map (\x -> (x, tShow x)) [0 :: Int ..4])
+      dd <- dropdown 0 possiblesValues (def { _dropdownConfig_setValue = updated currentValue })
+
+      pure (value dd, _dropdown_change dd)
+      -- pure (value dd, updated (value dd))
+
+widgetIntSelectorText :: MonadWidget t m
+                  => Dynamic t Int
+                  -> m (Dynamic t Int, Event t Int)
+widgetIntSelectorText currentValue = do
+      text <- textInput (def & (textInputConfig_setValue .~ (tShow <$> updated currentValue)) & (textInputConfig_initialValue .~ "0"))
+      pure (read . Text.unpack <$> value text, read . Text.unpack <$> _textInput_input text)
 
 -- * Report
 

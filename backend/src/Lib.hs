@@ -27,11 +27,14 @@ import           System.IO.SafeWrite
 import           Network.Wai.Middleware.Cors
 
 -- * app
+logger req s mi = do
+  print(req, s, mi)
 
 run :: IO ()
 run = do
   let port = 8082
       settings =
+        setLogger logger $
         setPort port $
         setBeforeMainLoop (hPutStrLn stderr ("listening on port " ++ show port)) $
         defaultSettings

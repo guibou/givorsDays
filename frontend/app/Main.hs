@@ -14,13 +14,14 @@ import Data.Function (on)
 import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
 import Data.Functor (($>))
+import Control.Monad.IO.Class (liftIO)
 
 import qualified Data.Text as Text
 import Data.Text (Text)
 import qualified Data.Map as Map
 import Data.Map (Map)
 
-import Data.Time (fromGregorian, toGregorian, Day, addDays)
+import Data.Time (fromGregorian, toGregorian, Day, addDays, utctDay, getCurrentTime)
 import Data.Time.Calendar.WeekDate (toWeekDate, fromWeekDate)
 
 import Reflex.Dom.Core
@@ -158,7 +159,9 @@ monthSelectWidget = do
   prev <- button "<"
   next <- button ">"
 
-  let startingMonth = CurrentMonth 2017 10
+  (Day y m _) <- utctDay <$> liftIO getCurrentTime
+
+  let startingMonth = CurrentMonth y m
 
   currentMonth <- foldDyn ($) startingMonth (leftmost
                                             [

@@ -88,7 +88,7 @@ groupOn f l = let groups = groupBy (on (==) f) l
 
 -- * Model
 
-data CurrentMonth = CurrentMonth Integer Int
+data CurrentMonth = CurrentMonth Integer Int deriving (Show)
 type Calendar = Map Day Int
 
 -- A Calendar implictly associat 0 to each day
@@ -126,36 +126,54 @@ sendUpdates e = do
 css = $(embedFile "app/default.css")
 
 main :: IO ()
-main = run 8080 $ mainWidgetWithCss css $
-  el "div" $ mdo
+main = run 8080 $ mainWidgetWithCss css $ mdo
     currentMonth <- elClass "div" "header" $ do
-      text "Calendrier "
       w <- monthSelectWidget
-      text " "
-      _ <- dyn (makeResume <$> currentCal)
-      blank
+      el "span" $ dyn (makeResume <$> currentCal)
       pure w
 
-    xhrCalendar <- loadCalendar
+    currentCal <- elClass "div" "calendar" $ mdo
+      xhrCalendar <- loadCalendar
 
-    let updatesEvents = updateCal <$> updates
-    currentCal <- foldDyn ($) Map.empty (leftmost [const <$> xhrCalendar, updatesEvents])
+      let updatesEvents = updateCal <$> updates
+      currentCal <- foldDyn ($) Map.empty (leftmost [const <$> xhrCalendar, updatesEvents])
 
-    updates <- makeCalendar currentMonth currentCal
+      updates <- makeCalendar currentMonth currentCal
 
-    _ <- sendUpdates updates
+      _ <- sendUpdates updates
 
+      pure currentCal
     blank
+
+prevMonth (CurrentMonth y 1) = CurrentMonth (y - 1) 12
+prevMonth (CurrentMonth y m) = CurrentMonth y (m - 1)
+
+nextMonth (CurrentMonth y 12) = CurrentMonth (y + 1) 1
+nextMonth (CurrentMonth y m) = CurrentMonth y (m + 1)
 
 -- | A month selection widget composed of a year input and month input
 monthSelectWidget :: MonadWidget t m
                   => m (Dynamic t CurrentMonth)
 monthSelectWidget = do
-  month <- dropdown 10 (constDyn $ Map.fromList (zip [1..] monthsList)) def
-  text " "
-  year <- textInput (def { _textInputConfig_inputType = "number", _textInputConfig_initialValue = "2017" })
+  prev <- button "<"
+  next <- button ">"
 
-  pure (CurrentMonth <$> (toIntUnsafe <$> value year) <*> value month)
+  let startingMonth = CurrentMonth 2017 10
+
+  currentMonth <- foldDyn ($) startingMonth (leftmost
+                                            [
+                                              prevMonth <$ prev,
+                                              nextMonth <$ next
+                                            ])
+
+  text " "
+  dynText (formatMonth <$> currentMonth)
+  text " "
+
+
+  pure currentMonth
+
+formatMonth (CurrentMonth y m) = monthsList !! (m - 1) <> " " <> tShow y
 
 -- * Calendar
 
@@ -250,9 +268,3 @@ makeResume calendar = do
     let countYear = sum (map snd months)
     el "strong" $ text (tShow year)
     text (": " <> tShow countYear <> " ")
-    {-
-    el "h3" $ text (tShow year <> ": " <> tShow countYear)
-    el "ul" $ for_ (groupOn ((\(Day _ m _) -> m) . fst) months) $ \(month, days) -> do
-      let countMonth = sum (map snd days)
-      el "li" $ text $ (monthsList !! (month - 1)) <> ": " <> tShow countMonth
-    -}

@@ -25,10 +25,13 @@ import           Control.Concurrent (forkIO)
 import           Control.Concurrent.MVar
 import           System.IO.SafeWrite
 import           Network.Wai.Middleware.Cors
+import           Network.Wai.Middleware.Gzip
 
 -- * app
 logger req s mi = do
   print(req, s, mi)
+
+gzipSettings = def { gzipFiles = GzipPreCompressed (GzipCacheFolder "/tmp/cacheGzip") }
 
 run :: IO ()
 run = do
@@ -52,15 +55,17 @@ mkApp = do
   calVar <- newMVar cal
 
   -- serve the API
-  let api = getCalendar calVar :<|> getMonth calVar :<|> updateCalendar filename calVar
-  return $ simpleCors (serve (Proxy @CalendarApi) api)
+  let api = getCalendar calVar :<|> getMonth calVar :<|> updateCalendar filename calVar :<|> serveDirectoryFileServer "static"
+  return $ gzip gzipSettings $ simpleCors (serve (Proxy @CalendarApi) api)
 
 -- * api
 
 type CalendarApi =
   "calendar" :> Get '[JSON] [(Day, Int)] :<|>
   "month" :> Capture "year" Integer :> Capture "month" Int :> Get '[JSON] [(Day, Int)] :<|>
-  "update" :> Capture "day" Day :> Capture "halfdays" Int :> Get '[JSON] ()
+  "update" :> Capture "day" Day :> Capture "halfdays" Int :> Get '[JSON] () :<|>
+  Raw
+
 
 -- * endpoints
 data Calendar = Calendar (Map.Map Day Int)

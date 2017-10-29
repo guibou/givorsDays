@@ -5,6 +5,7 @@
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE TupleSections #-}
+{-# Language TemplateHaskell #-}
 
 import Data.Traversable (for)
 import Data.Foldable (for_)
@@ -22,7 +23,10 @@ import Data.Map (Map)
 import Data.Time (fromGregorian, toGregorian, Day, addDays)
 import Data.Time.Calendar.WeekDate (toWeekDate, fromWeekDate)
 
-import Reflex.Dom
+import Reflex.Dom.Core
+import Language.Javascript.JSaddle.Warp
+
+import Data.FileEmbed
 
 -- * Intro
 
@@ -98,12 +102,6 @@ updateCal (day, n) cal = Map.insert day n cal
 readCal :: Calendar -> Day -> Int
 readCal calendar day = fromMaybe 0 $ Map.lookup day calendar
 
-header :: MonadWidget t m => m ()
-header = do
-  el "title" $ text "Calendrier jours travaillés Givors"
-  elAttr "link" (Map.fromList [("rel", "stylesheet"), ("type", "text/css"), ("href", "default.css")]) blank
-
-
 loadCalendar :: MonadWidget t m
                    => m (Event t Calendar)
 loadCalendar = do
@@ -125,8 +123,10 @@ sendUpdates e = do
 
   pure (fromMaybe () <$> res)
 
+css = $(embedFile "app/default.css")
+
 main :: IO ()
-main = mainWidgetWithHead header $
+main = run 8080 $ mainWidgetWithCss css $
   el "div" $ mdo
     currentMonth <- el "h2" $ do
       text "Calendrier "

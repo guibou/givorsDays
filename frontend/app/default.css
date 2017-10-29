@@ -52,3 +52,21 @@ td div.combo
 {
     background-color: red;
 }
+
+.header
+{
+    position: absolute;
+    left: 0px;
+    right: 30px;
+    opacity: 0.5;
+    overflow: hidden;
+}
+
+.header:hover
+{
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    opacity: 1.0;
+    background: white;
+}

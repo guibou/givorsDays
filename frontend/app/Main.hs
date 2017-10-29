@@ -128,9 +128,13 @@ css = $(embedFile "app/default.css")
 main :: IO ()
 main = run 8080 $ mainWidgetWithCss css $
   el "div" $ mdo
-    currentMonth <- el "h2" $ do
+    currentMonth <- elClass "div" "header" $ do
       text "Calendrier "
-      monthSelectWidget
+      w <- monthSelectWidget
+      text " "
+      _ <- dyn (makeResume <$> currentCal)
+      blank
+      pure w
 
     xhrCalendar <- loadCalendar
 
@@ -141,8 +145,6 @@ main = run 8080 $ mainWidgetWithCss css $
 
     _ <- sendUpdates updates
 
-    el "h2" $ text "Résumé"
-    _ <- elClass "div" "report" $ dyn (makeResume <$> currentCal)
     blank
 
 -- | A month selection widget composed of a year input and month input
@@ -246,8 +248,11 @@ makeResume calendar = do
 
   for_ (groupOn ((\(Day y _ _) -> y) . fst) items) $ \(year, months) -> mdo
     let countYear = sum (map snd months)
+    el "strong" $ text (tShow year)
+    text (": " <> tShow countYear <> " ")
+    {-
     el "h3" $ text (tShow year <> ": " <> tShow countYear)
     el "ul" $ for_ (groupOn ((\(Day _ m _) -> m) . fst) months) $ \(month, days) -> do
       let countMonth = sum (map snd days)
       el "li" $ text $ (monthsList !! (month - 1)) <> ": " <> tShow countMonth
-
+    -}

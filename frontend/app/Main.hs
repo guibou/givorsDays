@@ -200,34 +200,41 @@ calendarCell :: MonadWidget t m
              -> m (Event t (Day, Int)) -- ^ Day modification event
 calendarCell currentDay dynCalendar = mdo
   let
-    currentValue = readCal <$> dynCalendar <*> currentDay
+    currentValue' = readCal <$> dynCalendar <*> currentDay
+
+  currentValue <- holdUniqDyn currentValue'
 
   -- the td class depends on the value of the comboBox, as dayX where X is the value of the combobox
-  (value, event) <- elDynClass "td" (dayClassName  <$> value) $ do
+  (tdClick, (value, event)) <- elDynClass' "td" (dayClassName  <$> value) $ mdo
     -- Name of the day, usually a number, but first of month (and first of year) are special
+    res <- elClass "div" "combo" $ do
+      widgetIntSelectorBox currentValue (domEvent Click tdClick)
+
     elClass "div" "dayName" $ dynText (getDayLabel <$> currentDay)
 
-    elClass "div" "combo" $ do
-      widgetIntSelectorText currentValue
+    pure res
 
   pure (attach (current currentDay) event)
 
-widgetIntSelectorCombo :: MonadWidget t m
+widgetIntSelectorBox :: MonadWidget t m
                   => Dynamic t Int
+                  -> Event t ()
                   -> m (Dynamic t Int, Event t Int)
-widgetIntSelectorCombo currentValue = do
-      let possiblesValues = constDyn $ Map.fromList (map (\x -> (x, tShow x)) [0 :: Int ..4])
-      dd <- dropdown 0 possiblesValues (def { _dropdownConfig_setValue = updated currentValue })
+widgetIntSelectorBox currentValue evtClick = mdo
+  el "div" $ display value
 
-      pure (value dd, _dropdown_change dd)
-      -- pure (value dd, updated (value dd))
+  let
+    setEvent = const <$> updated currentValue
 
-widgetIntSelectorText :: MonadWidget t m
-                  => Dynamic t Int
-                  -> m (Dynamic t Int, Event t Int)
-widgetIntSelectorText currentValue = do
-      text <- textInput (def & (textInputConfig_setValue .~ (tShow <$> updated currentValue)) & (textInputConfig_initialValue .~ "0"))
-      pure (read . Text.unpack <$> value text, read . Text.unpack <$> _textInput_input text)
+    cycleI 4 = 0
+    cycleI n = n + 1
+
+    increaseEvent = evtClick $> cycleI
+
+  value' <- foldDyn ($) 0 (leftmost [setEvent, increaseEvent])
+  value <- holdUniqDyn value'
+
+  pure (value, tag (cycleI <$> current value) increaseEvent)
 
 -- * Report
 

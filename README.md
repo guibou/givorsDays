@@ -5,6 +5,11 @@
 
 # frontend
 
-build with reflex-plateform and `ghcjs -O2 frontend/app/Main.hs`.
+`cd frontend`
+`../reflex-plateform/work-on ghc .`
+`cabal repl`
+`:main / :r`
+
+# screenshot
 
 ![frontent](screenshot.png)

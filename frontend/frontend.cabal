@@ -17,6 +17,12 @@ library
   hs-source-dirs:      src
   exposed-modules:     Lib
   build-depends:       base >= 4.7 && < 5
+                     , reflex
+                     , reflex-dom-core
+                     , text
+                     , file-embed
+                     , time
+                     , containers
   default-language:    Haskell2010
 
 executable frontend-exe
@@ -25,12 +31,6 @@ executable frontend-exe
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
                      , frontend
-                     , reflex
-                     , reflex-dom-core
-                     , text
-                     , file-embed
-                     , time
-                     , containers
                      , jsaddle-warp
   default-language:    Haskell2010
 

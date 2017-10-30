@@ -2,7 +2,6 @@
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE TupleSections #-}
 {-# Language TemplateHaskell #-}
@@ -11,24 +10,24 @@ module Lib where
 
 import Data.Traversable (for)
 import Data.Foldable (for_)
-import Data.List (groupBy)
-import Data.Function (on)
 import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
 import Data.Functor (($>))
 import Control.Monad.IO.Class (liftIO)
 
-import qualified Data.Text as Text
 import Data.Text (Text)
 import qualified Data.Map as Map
 import Data.Map (Map)
 
-import Data.Time (fromGregorian, toGregorian, Day, addDays, utctDay, getCurrentTime)
-import Data.Time.Calendar.WeekDate (toWeekDate, fromWeekDate)
+import Data.Time (Day, addDays, utctDay, getCurrentTime)
 
 import Reflex.Dom.Core
 
 import Data.FileEmbed
+
+import Date
+import Utils
+import WidgetMonth
 
 -- * Intro
 
@@ -37,60 +36,8 @@ This is a dynamic calendar where each day can be associated a value in
 [0, 4], which are the number of half day worked that day. Yes, we can work 4 half days in a day ;)
 -}
 
--- * Some constants and utils
-
--- | French listing of month names
-monthsList :: [Text]
-monthsList = Text.words "Janvier Février Mars Avril Mai Juin Juillet Août Septembre Octobre Novembre Decembre"
-
--- | French listing of day names
-daysList :: [Text]
-daysList = Text.words "Lundi Mardi Mercredi Jeudi Vendredi Samedi Dimanche"
-
--- | Convert between gregorian and *Day*
-pattern Day :: Integer -> Int -> Int -> Day
-pattern Day y m d <- (toGregorian -> (y, m, d))
-  where Day y m d = fromGregorian y m d
-
-{-# COMPLETE Day #-}
-
-{- | Returns the label for a Day
-
-     There is a special case for first of month / year:
-
-     >>> getDayLabel (Day 2017 5 23)
-     23
-     >>> getDayLabel (Day 2017 5 1)
-     1 Mai
-     >>> getDayLabel (Day 2017 1 1)
-     1 Janvier 2017
--}
-getDayLabel :: Day -> Text
-getDayLabel (Day y m d) = tShow d <> ifMonth <> ifYear
-  where ifMonth = if d == 1
-                  then " " <> (monthsList !! (m - 1))
-                  else ""
-        ifYear = if m == 1 && d == 1
-                 then " " <> tShow y
-                 else ""
-toIntUnsafe :: Text -> Integer
-toIntUnsafe = read . Text.unpack
-
-tShow :: Show t => t -> Text
-tShow = Text.pack . show
-
-{- |
-   >>> groupOn head ["aoeu", "aiii", "bou"]
-   [('a', ["aoeu", "aiii"]), ('b', ["bou"])]
--}
-
-groupOn :: Eq b => (a -> b) -> [a] -> [(b, [a])]
-groupOn f l = let groups = groupBy (on (==) f) l
-              in map (\group -> (f (head group), group)) groups
-
 -- * Model
 
-data CurrentMonth = CurrentMonth Integer Int deriving (Show)
 type Calendar = Map Day Int
 
 -- A Calendar implictly associat 0 to each day
@@ -146,48 +93,6 @@ libMainWidget = mainWidgetWithCss css $ mdo
       pure currentCal
     blank
 
-prevMonth (CurrentMonth y 1) = CurrentMonth (y - 1) 12
-prevMonth (CurrentMonth y m) = CurrentMonth y (m - 1)
-
-nextMonth (CurrentMonth y 12) = CurrentMonth (y + 1) 1
-nextMonth (CurrentMonth y m) = CurrentMonth y (m + 1)
-
--- | A month selection widget composed of a year input and month input
-monthSelectWidget :: MonadWidget t m
-                  => m (Dynamic t CurrentMonth)
-monthSelectWidget = do
-  prev <- button "<"
-  next <- button ">"
-
-  (Day y m _) <- utctDay <$> liftIO getCurrentTime
-
-  let startingMonth = CurrentMonth y m
-
-  currentMonth <- foldDyn ($) startingMonth (leftmost
-                                            [
-                                              prevMonth <$ prev,
-                                              nextMonth <$ next
-                                            ])
-
-  text " "
-  dynText (formatMonth <$> currentMonth)
-  text " "
-
-
-  pure currentMonth
-
-formatMonth (CurrentMonth y m) = monthsList !! (m - 1) <> " " <> tShow y
-
--- * Calendar
-
--- | Returns the first Monday before the begining of this month
---   i.e. if your month starts on Wednesday, this functions returns a day 2 days earlier
-getStartingDay :: CurrentMonth -> Day
-getStartingDay (CurrentMonth year month) =
-  let
-    (startingYear, startingWeek, _) = toWeekDate (fromGregorian year month 1)
-    startingDay = fromWeekDate startingYear startingWeek 1
-  in startingDay
 
 -- | Creates a calender
 makeCalendar :: MonadWidget t m

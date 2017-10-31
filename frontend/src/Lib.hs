@@ -13,14 +13,12 @@ import Data.Foldable (for_)
 import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
 import Data.Functor (($>))
-import Control.Monad.IO.Class (liftIO)
 
 import Data.Text (Text)
 import qualified Data.Map as Map
 import Data.Map (Map)
 
-import Data.Time (Day, addDays, utctDay, getCurrentTime)
-
+import Data.Time (Day, addDays)
 import Reflex.Dom.Core
 
 import Data.FileEmbed
@@ -77,42 +75,46 @@ css = $(embedFile "app/default.css")
 libMainWidget = mainWidgetWithCss css $ mdo
     currentMonth <- elClass "div" "header" $ do
       w <- monthSelectWidget
-      el "span" $ dyn (makeResume <$> currentCal)
+      _ <- el "span" $ dyn (makeResume <$> currentCal)
       pure w
 
     currentCal <- elClass "div" "calendar" $ mdo
       xhrCalendar <- loadCalendar
 
-      let updatesEvents = updateCal <$> updates
+      let updatesEvents = updateCal <$> (switchPromptlyDyn updates)
       currentCal <- foldDyn ($) Map.empty (leftmost [const <$> xhrCalendar, updatesEvents])
 
-      updates <- makeCalendar currentMonth currentCal
+      let updateEvent = leftmost [xhrCalendar $> (), updated currentMonth $> ()]
 
-      _ <- sendUpdates updates
+      let dynCalendar  = makeCalendar <$> currentMonth <*> currentCal
+      let evtCalendar = tagPromptlyDyn dynCalendar updateEvent
+      updates <- widgetHold (text "loading" >> pure never) evtCalendar
+
+      _ <- sendUpdates (switchPromptlyDyn updates)
 
       pure currentCal
     blank
 
-
 -- | Creates a calender
 makeCalendar :: MonadWidget t m
-             => Dynamic t CurrentMonth -- ^ The month to be displayed
-             -> Dynamic t Calendar  -- ^ The current status of the days
+             => CurrentMonth -- ^ The month to be displayed
+             -> Calendar  -- ^ The current status of the days
              -> m (Event t (Day,Int))  -- ^ The updated days
-makeCalendar dynCurrentMonth dynCalendar = mdo
-  let startingDay = getStartingDay <$> dynCurrentMonth
+makeCalendar currentMonth calendar = mdo
+  let
+    (startingDay, nbWeeks) = getStartingDay currentMonth
 
   combos <- el "div" $
     el "table" $ do
       el "thead" $ el "tr" $ for_ daysList (el "th" . text)
 
       -- in the worse case, a 31 days month starting on sunday will span over 6 weeks
-      el "tbody" $ for [0..5] $ \weekNo ->
+      el "tbody" $ for [0.. (nbWeeks - 1)] $ \weekNo ->
           el "tr" $ for [0..6] $ \dayNo -> do
-            let dayOffset = weekNo * 7 + dayNo
-                currentDay = addDays dayOffset <$> startingDay
+            let dayOffset = (fromIntegral weekNo) * 7 + dayNo
+                currentDay = addDays dayOffset startingDay
 
-            calendarCell currentDay dynCalendar
+            calendarCell currentDay (readCal calendar currentDay)
 
   pure (leftmost (mconcat combos))
 
@@ -123,46 +125,27 @@ dayClassName i = "day" <> tShow i
 
 -- | Calendar cell widget
 calendarCell :: MonadWidget t m
-             => Dynamic t Day -- ^ The day to display
-             -> Dynamic t Calendar -- ^ The current calendar (will be sampled to know the day value)
+             => Day -- ^ The day to display
+             -> Int -- ^ The current value
              -> m (Event t (Day, Int)) -- ^ Day modification event
-calendarCell currentDay dynCalendar = mdo
+calendarCell currentDay initValue = mdo
+  value <- cycle4 initValue (domEvent Click tdClick)
+  (tdClick, _) <- elDynClass' "td" (dayClassName  <$> value) $ do
+    elClass "div" "dayName" $ text (getDayLabel currentDay)
+    el "div" $ display value
+
+  pure ((currentDay,) <$> updated value)
+
+cycle4 :: MonadWidget t m
+       => Int -- ^ Init value
+       -> Event t () -- ^ Update event
+       -> m (Dynamic t Int)
+cycle4 initValue evtClick = do
   let
-    currentValue' = readCal <$> dynCalendar <*> currentDay
-
-  currentValue <- holdUniqDyn currentValue'
-
-  -- the td class depends on the value of the comboBox, as dayX where X is the value of the combobox
-  (tdClick, (value, event)) <- elDynClass' "td" (dayClassName  <$> value) $ mdo
-    -- Name of the day, usually a number, but first of month (and first of year) are special
-    res <- elClass "div" "combo" $ do
-      widgetIntSelectorBox currentValue (domEvent Click tdClick)
-
-    elClass "div" "dayName" $ dynText (getDayLabel <$> currentDay)
-
-    pure res
-
-  pure (attach (current currentDay) event)
-
-widgetIntSelectorBox :: MonadWidget t m
-                  => Dynamic t Int
-                  -> Event t ()
-                  -> m (Dynamic t Int, Event t Int)
-widgetIntSelectorBox currentValue evtClick = mdo
-  el "div" $ display value
-
-  let
-    setEvent = const <$> updated currentValue
-
     cycleI 4 = 0
     cycleI n = n + 1
 
-    increaseEvent = evtClick $> cycleI
-
-  value' <- foldDyn ($) 0 (leftmost [setEvent, increaseEvent])
-  value <- holdUniqDyn value'
-
-  pure (value, tag (cycleI <$> current value) increaseEvent)
+  foldDyn ($) initValue (cycleI <$ evtClick)
 
 -- * Report
 

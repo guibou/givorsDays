@@ -9,6 +9,8 @@ import Data.Text (Text)
 
 import Data.Time (fromGregorian, toGregorian, Day)
 import Data.Time.Calendar.WeekDate (toWeekDate, fromWeekDate)
+import Data.Time.Calendar.MonthDay
+import Data.Time.Calendar.OrdinalDate
 
 import Data.Monoid ((<>))
 
@@ -51,12 +53,15 @@ getDayLabel (Day y m d) = tShow d <> ifMonth <> ifYear
 
 -- | Returns the first Monday before the begining of this month
 --   i.e. if your month starts on Wednesday, this functions returns a day 2 days earlier
-getStartingDay :: CurrentMonth -> Day
+getStartingDay :: CurrentMonth -> (Day, Int)
 getStartingDay (CurrentMonth year month) =
   let
-    (startingYear, startingWeek, _) = toWeekDate (fromGregorian year month 1)
+    leapYear = isLeapYear year
+    mLength = monthLength leapYear month
+
+    (startingYear, startingWeek, weekDayNo) = toWeekDate (fromGregorian year month 1)
     startingDay = fromWeekDate startingYear startingWeek 1
-  in startingDay
+  in (startingDay, 1 + (weekDayNo - 1 + mLength - 1) `div` 7)
 
 data CurrentMonth = CurrentMonth Integer Int deriving (Show)
 

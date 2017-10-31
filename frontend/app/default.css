@@ -70,7 +70,7 @@ html, body
 .calendar > div, .calendar > div > table
 {
     height: calc(100vh - 1.6em);
-    width: calc(100vw - 1em);
+    width: calc(100vw - 1px);
     margin: 0;
     pading: 0;
 }

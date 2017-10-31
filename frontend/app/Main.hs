@@ -1,5 +1,4 @@
-import Lib
-import Language.Javascript.JSaddle.Warp
+import GHCLauncher
 
 main :: IO ()
-main = run 8080 $ libMainWidget
+main = run

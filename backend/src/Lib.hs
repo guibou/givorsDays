@@ -33,20 +33,17 @@ logger req s mi = do
 
 gzipSettings = def { gzipFiles = GzipPreCompressed (GzipCacheFolder "/tmp/cacheGzip") }
 
-run :: IO ()
-run = do
-  let port = 8082
-      settings =
+run :: String -> Int -> IO ()
+run filename port = do
+  let settings =
         setLogger logger $
         setPort port $
         setBeforeMainLoop (hPutStrLn stderr ("listening on port " ++ show port)) $
         defaultSettings
-  runSettings settings =<< mkApp
+  runSettings settings =<< mkApp filename
 
-mkApp :: IO Application
-mkApp = do
-  -- read the initial db content
-  let filename = "saveFile"
+mkApp :: String -> IO Application
+mkApp filename = do
   calendarS <- try @IOException $ BS.readFile filename
   let cal = case decode' =<< hush calendarS of
         Nothing -> Calendar (Map.empty)

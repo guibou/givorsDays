@@ -5,6 +5,7 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE TupleSections #-}
 {-# Language TemplateHaskell #-}
+{-# LANGUAGE CPP #-}
 
 module Lib where
 
@@ -19,7 +20,12 @@ import qualified Data.Map as Map
 import Data.Map (Map)
 
 import Data.Time (Day, addDays)
+
+#ifdef USE_WARP
 import Reflex.Dom.Core
+#else
+import Reflex.Dom
+#endif
 
 import Data.FileEmbed
 

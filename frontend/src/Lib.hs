@@ -50,36 +50,37 @@ readCal :: Calendar -> Day -> Int
 readCal calendar day = fromMaybe 0 $ Map.lookup day calendar
 
 loadCalendar :: MonadWidget t m
-                   => m (Event t Calendar)
-loadCalendar = do
+                   => Text -> m (Event t Calendar)
+loadCalendar prefix = do
   pb <- getPostBuild
-  req <- getAndDecode (pb $> "http://localhost:8082/calendar")
+  req <- getAndDecode (pb $> prefix <> "/calendar")
 
   let result = fmapMaybe id req
 
   pure (Map.fromList <$> result)
 
-toReq :: (Day, Int) -> Text
-toReq (day, halfday) = "http://localhost:8082/update/" <> tShow day <> "/" <> tShow halfday
+toReq :: Text -> (Day, Int) -> Text
+toReq prefix (day, halfday) = prefix <> "/update/" <> tShow day <> "/" <> tShow halfday
 
 sendUpdates :: MonadWidget t m
-            => Event t (Day, Int)
+            => Text
+            -> Event t (Day, Int)
             -> m (Event t ())
-sendUpdates e = do
-  res <- getAndDecode (toReq <$> e)
+sendUpdates prefix e = do
+  res <- getAndDecode (toReq prefix <$> e)
 
   pure (fromMaybe () <$> res)
 
 css = $(embedFile "app/default.css")
 
-libMainWidget = mainWidgetWithCss css $ mdo
+libMainWidget prefix = mainWidgetWithCss css $ mdo
     currentMonth <- elClass "div" "header" $ do
       w <- monthSelectWidget
       _ <- el "span" $ dyn (makeResume <$> currentCal)
       pure w
 
     currentCal <- elClass "div" "calendar" $ mdo
-      xhrCalendar <- loadCalendar
+      xhrCalendar <- loadCalendar prefix
 
       let updatesEvents = updateCal <$> (switchPromptlyDyn updates)
       currentCal <- foldDyn ($) Map.empty (leftmost [const <$> xhrCalendar, updatesEvents])
@@ -90,7 +91,7 @@ libMainWidget = mainWidgetWithCss css $ mdo
       let evtCalendar = tagPromptlyDyn dynCalendar updateEvent
       updates <- widgetHold (text "loading" >> pure never) evtCalendar
 
-      _ <- sendUpdates (switchPromptlyDyn updates)
+      _ <- sendUpdates prefix (switchPromptlyDyn updates)
 
       pure currentCal
     blank

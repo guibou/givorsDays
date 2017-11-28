@@ -25,9 +25,9 @@ library
                      , time
                      , errors
                      , bytestring
-                     , safeio
                      , wai-cors
                      , wai-extra
+                     , network
   default-language:    Haskell2010
 
 executable backend-exe

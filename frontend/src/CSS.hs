@@ -10,15 +10,22 @@ import Clay
 css = (encodeUtf8 . toStrict . render) $ do
   table ? borderCollapse collapse
   td ? do
+    position relative
     width (pct 14.28)
     border solid (px 1) lightgrey
     margin (0 :: Size LengthUnit) 0 0 0
     userSelect none
 
     "div.dayName" ? do
-      whiteSpace nowrap
       fontSize (em 1.6)
       textAlign center
+    "div.monthName" ? do
+      fontSize (em 1.6)
+      textAlign center
+      position absolute
+      color lightblue
+      top (px 0)
+      zIndex (-1)
 
     "div.combo" ? do
       userSelect none

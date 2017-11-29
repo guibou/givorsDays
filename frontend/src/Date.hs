@@ -31,21 +31,21 @@ pattern Day y m d <- (toGregorian -> (y, m, d))
 
 {-# COMPLETE Day #-}
 
-{- | Returns the label for a Day
+{- | Returns the label for a Month
 
      There is a special case for first of month / year:
 
-     >>> getDayLabel (Day 2017 5 23)
-     23
-     >>> getDayLabel (Day 2017 5 1)
-     1 Mai
-     >>> getDayLabel (Day 2017 1 1)
-     1 Janvier 2017
+     >>> getMonthLabel (Month 2017 5 23)
+
+     >>> getMonthLabel (Month 2017 5 1)
+     Mai
+     >>> getMonthLabel (Month 2017 1 1)
+     Janvier 2017
 -}
-getDayLabel :: Day -> Text
-getDayLabel (Day y m d) = tShow d <> ifMonth <> ifYear
+getMonthLabel :: Day -> Text
+getMonthLabel (Day y m d) = ifMonth <> ifYear
   where ifMonth = if d == 1
-                  then " " <> (monthsList !! (m - 1))
+                  then " " <> monthsList !! (m - 1)
                   else ""
         ifYear = if m == 1 && d == 1
                  then " " <> tShow y

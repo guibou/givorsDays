@@ -132,10 +132,11 @@ calendarCell :: MonadWidget t m
              => Day -- ^ The day to display
              -> Int -- ^ The current value
              -> m (Event t (Day, Int)) -- ^ Day modification event
-calendarCell currentDay initValue = mdo
+calendarCell currentDay@(Day _ _ d) initValue = mdo
   value <- cycle4 initValue (domEvent Click tdClick)
   (tdClick, _) <- elDynClass' "td" (dayClassName  <$> value) $ do
-    elClass "div" "dayName" $ text (getDayLabel currentDay)
+    elClass "div" "monthName" $ text (getMonthLabel currentDay)
+    elClass "div" "dayName" $ text (tShow d)
     el "div" $ display value
 
   pure ((currentDay,) <$> updated value)

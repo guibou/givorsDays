@@ -18,11 +18,12 @@ import Utils
 
 -- | French listing of month names
 monthsList :: [Text]
-monthsList = Text.words "Janvier Février Mars Avril Mai Juin Juillet Août Septembre Octobre Novembre Decembre"
+monthsList = Text.words "Janvier Fevrier Mars Avril Mai Juin Juillet Aout Septembre Octobre Novembre Decembre"
+-- monthsList = map (Text.take 3) $ Text.words "Janvier Février Mars Avril Mai Juin Juillet Août Septembre Octobre Novembre Decembre"
 
 -- | French listing of day names
 daysList :: [Text]
-daysList = Text.words "Lundi Mardi Mercredi Jeudi Vendredi Samedi Dimanche"
+daysList = map (Text.take 3) $ Text.words "Lundi Mardi Mercredi Jeudi Vendredi Samedi Dimanche"
 
 -- | Convert between gregorian and *Day*
 pattern Day :: Integer -> Int -> Int -> Day

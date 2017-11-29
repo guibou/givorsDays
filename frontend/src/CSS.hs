@@ -7,6 +7,8 @@ import Data.Text.Lazy (toStrict)
 import Data.Text.Encoding (encodeUtf8)
 import Clay
 
+import Data.Monoid ((<>))
+
 css = (encodeUtf8 . toStrict . render) $ do
   table ? borderCollapse collapse
   td ? do
@@ -36,14 +38,11 @@ css = (encodeUtf8 . toStrict . render) $ do
   ".day3" ? backgroundColor orangered
   ".day4" ? backgroundColor red
 
-  let zero = do
-        width (pct 100)
-        height (pct 100)
-        margin (0 :: Size LengthUnit) 0 0 0
-        padding (0 :: Size LengthUnit) 0 0 0
-
-  html ? zero
-  body ? zero
+  html <> body ? do
+    width (pct 100)
+    height (pct 100)
+    margin (0 :: Size LengthUnit) 0 0 0
+    padding (0 :: Size LengthUnit) 0 0 0
 
   ".calendar" ? do
     position absolute
@@ -54,14 +53,12 @@ css = (encodeUtf8 . toStrict . render) $ do
     margin (0 :: Size LengthUnit) 0 0 0
     padding (0 :: Size LengthUnit) 0 0 0
 
-  let blork = do
-        height (vh 100 @-@ em 1.6)
-        width (vw 100 @-@ px 1) -- 1 px, because ?
-        margin (0 :: Size LengthUnit) 0 0 0
-        padding (0 :: Size LengthUnit) 0 0 0
-
-  ".calendar" |> div ? blork
-  ".calendar" |> div |> table ? blork
+  ".calendar" |> div ? do
+    star <> table  <? do
+      height (vh 100 @-@ em 1.6)
+      width (vw 100 @-@ px 1) -- 1 px, because ?
+      margin (0 :: Size LengthUnit) 0 0 0
+      padding (0 :: Size LengthUnit) 0 0 0
 
   ".header" ? span ? do
     textAlign (alignSide sideRight)

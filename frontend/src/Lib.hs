@@ -27,11 +27,10 @@ import Reflex.Dom.Core
 import Reflex.Dom
 #endif
 
-import Data.FileEmbed
-
 import Date
 import Utils
 import WidgetMonth
+import CSS
 
 -- * Intro
 
@@ -76,8 +75,6 @@ sendUpdates prefix e = do
   res <- getAndDecode (toReq prefix <$> e)
 
   pure (fromMaybe () <$> res)
-
-css = $(embedFile "app/default.css")
 
 libMainWidget prefix = mainWidgetWithCss css $ mdo
     currentMonth <- elClass "div" "header" $ do

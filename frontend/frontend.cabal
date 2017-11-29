@@ -15,7 +15,8 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Lib, Date, Utils, WidgetMonth
+
+  exposed-modules:     Lib, Date, Utils, WidgetMonth, CSS
   build-depends:       base >= 4.7 && < 5
                      , reflex
                      , text
@@ -30,6 +31,7 @@ library
                      , reflex-dom-core
     ghc-options: -DUSE_WARP
     exposed-modules: GHCLauncher
+
   default-language:    Haskell2010
 
 -- This is the android build

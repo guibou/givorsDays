@@ -113,7 +113,8 @@ updateDay day n (Calendar cal) = Calendar $ Map.insert day n cal
 
 -- Do not change this API, the json is dumped to the file
 data LogLine = LogLine
-  Day -- ^ The updated day
-  Int -- ^ The worked number of half days [0-4]
-  String -- ^ A log line in any stupid format
+  { logLineDay :: Day -- ^ The updated day
+  , logLineNumber :: Int -- ^ The worked number of half days [0-4]
+  , logLineInfo :: String -- ^ A log line in any stupid format
+  }
   deriving (Show, Generic, ToJSON, FromJSON)

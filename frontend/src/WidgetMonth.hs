@@ -14,8 +14,10 @@ import Utils
 
 -- | A month selection widget composed of a year input and month input
 monthSelectWidget :: MonadWidget t m
-                  => m (Dynamic t CurrentMonth)
-monthSelectWidget = do
+                  => Event t ()
+                  -> Event t ()
+                  -> m (Dynamic t CurrentMonth)
+monthSelectWidget prevE nextE = do
   prev <- button "<"
   next <- button ">"
 
@@ -25,8 +27,8 @@ monthSelectWidget = do
 
   currentMonth <- foldDyn ($) startingMonth (leftmost
                                             [
-                                              prevMonth <$ prev,
-                                              nextMonth <$ next
+                                              prevMonth <$ (leftmost [prev, prevE]),
+                                              nextMonth <$ (leftmost [next, nextE])
                                             ])
 
   text " "

@@ -33,6 +33,7 @@ import Utils
 import WidgetMonth
 import CSS
 import WebStorage
+import Swip
 
 -- * Intro
 
@@ -59,12 +60,14 @@ readCal calendar day = fromMaybe 0 $ Map.lookup day calendar
 libMainWidget = mainWidgetWithCss css $ mdo
     currentCal <- webStorageDyn @Calendar "calendar" mempty (attachWith (flip updateCal) (current currentCal) updates)
 
+    swipE <- swipEvent elCalendar def
+
     currentMonth <- elClass "div" "header" $ do
-      w <- monthSelectWidget
+      w <- monthSelectWidget (ffilter (==SwipLeft) swipE $> ()) (ffilter (==SwipRight) swipE $> ())
       _ <- el "span" $ dyn (makeResume <$> currentCal)
       pure w
 
-    updates <- elClass "div" "calendar" $ mdo
+    (elCalendar, updates) <- elClass' "div" "calendar" $ mdo
       pb <- getPostBuild
       let updateEvent = leftmost [pb, updated currentMonth $> ()]
 

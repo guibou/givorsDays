@@ -16,7 +16,7 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
 
-  exposed-modules:     Lib, Date, Utils, WidgetMonth, CSS, WebStorage
+  exposed-modules:     Lib, Date, Utils, WidgetMonth, CSS, WebStorage, Swip
   build-depends:       base >= 4.7 && < 5
                      , reflex
                      , text
@@ -29,6 +29,7 @@ library
                      , aeson
                      , jsaddle
                      , lens
+                     , data-default
   if os(linux)
     build-depends:
                        jsaddle-warp

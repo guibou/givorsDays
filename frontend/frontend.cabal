@@ -16,20 +16,24 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
 
-  exposed-modules:     Lib, Date, Utils, WidgetMonth, CSS
+  exposed-modules:     Lib, Date, Utils, WidgetMonth, CSS, WebStorage
   build-depends:       base >= 4.7 && < 5
                      , reflex
                      , text
                      , time
                      , containers
+                     , unordered-containers
                      , clay
                      , bytestring
                      , reflex-dom
+                     , aeson
+                     , jsaddle
+                     , lens
   if os(linux)
     build-depends:
                        jsaddle-warp
                      , reflex-dom-core
-    ghc-options: -DUSE_WARP
+    ghc-options: -DUSE_WARP -Wall
     exposed-modules: GHCLauncher
 
   default-language:    Haskell2010

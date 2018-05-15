@@ -1,28 +1,29 @@
-# backend
+This is a small calendar application to count my wife (half-)day of work.
 
-`stack build`
-`stack exec backend-exe -- database port`
+Each day can contain up to four half-day of work (yes, that's weird).
 
-- port is the port of the listening service, working on the plaintext database file.
-
-# frontend
+Persistance of the calendar is ensured through webstorage, the file can be exported.
 
 ## JSaddle work (fast iterations)
 
-`nix-shell -A shells.ghc`
-`cd ./frontend`
-`cabal new-repl`
-`:set -XOverloadedStrings`
-`run 8080 http://localhost:9000`
+```shell
+nix-shell -A shells.ghc
+cd ./frontend
 
-- 9000 is the port of the running backend
+cabal new-repl
+:l GHCLauncher
+run 8080
+```
+
 - Open your browser to "http://localhost:8080"
 
 ## Android application
 
-`nix-build -o res -A android.frontend --argstr uri "http://localhost:9000"`
+```shell
+nix-build -o res -A android.frontend
+```
 
-Change the uri to your backend uri and get your APK inside `res`.
+You will get your APK inside `res`.
 
 # screenshot
 

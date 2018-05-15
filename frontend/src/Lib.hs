@@ -5,6 +5,7 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE TupleSections #-}
 {-# Language TemplateHaskell #-}
+{-# Language TypeApplications #-}
 {-# LANGUAGE CPP #-}
 
 module Lib where
@@ -31,6 +32,7 @@ import Date
 import Utils
 import WidgetMonth
 import CSS
+import WebStorage
 
 -- * Intro
 
@@ -54,49 +56,25 @@ updateCal (day, n) cal = Map.insert day n cal
 readCal :: Calendar -> Day -> Int
 readCal calendar day = fromMaybe 0 $ Map.lookup day calendar
 
-loadCalendar :: MonadWidget t m
-                   => Text -> m (Event t Calendar)
-loadCalendar prefix = do
-  pb <- getPostBuild
-  req <- getAndDecode (pb $> prefix <> "/calendar")
+libMainWidget = mainWidgetWithCss css $ mdo
+    currentCal <- webStorageDyn @Calendar "calendar" mempty (attachWith (flip updateCal) (current currentCal) updates)
 
-  let result = fmapMaybe id req
-
-  pure (Map.fromList <$> result)
-
-toReq :: Text -> (Day, Int) -> Text
-toReq prefix (day, halfday) = prefix <> "/update/" <> tShow day <> "/" <> tShow halfday
-
-sendUpdates :: MonadWidget t m
-            => Text
-            -> Event t (Day, Int)
-            -> m (Event t ())
-sendUpdates prefix e = do
-  res <- getAndDecode (toReq prefix <$> e)
-
-  pure (fromMaybe () <$> res)
-
-libMainWidget prefix = mainWidgetWithCss css $ mdo
     currentMonth <- elClass "div" "header" $ do
       w <- monthSelectWidget
       _ <- el "span" $ dyn (makeResume <$> currentCal)
       pure w
 
-    currentCal <- elClass "div" "calendar" $ mdo
-      xhrCalendar <- loadCalendar prefix
-
-      let updatesEvents = updateCal <$> (switchPromptlyDyn updates)
-      currentCal <- foldDyn ($) Map.empty (leftmost [const <$> xhrCalendar, updatesEvents])
-
-      let updateEvent = leftmost [xhrCalendar $> (), updated currentMonth $> ()]
+    updates <- elClass "div" "calendar" $ mdo
+      pb <- getPostBuild
+      let updateEvent = leftmost [pb, updated currentMonth $> ()]
 
       let dynCalendar  = makeCalendar <$> currentMonth <*> currentCal
       let evtCalendar = tagPromptlyDyn dynCalendar updateEvent
+
       updates <- widgetHold (text "loading" >> pure never) evtCalendar
 
-      _ <- sendUpdates prefix (switchPromptlyDyn updates)
+      pure (switchPromptlyDyn updates)
 
-      pure currentCal
     blank
 
 -- | Creates a calender

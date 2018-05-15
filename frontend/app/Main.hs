@@ -5,4 +5,4 @@
 import Lib
 
 main :: IO ()
-main = libMainWidget APP_URI
+main = libMainWidget

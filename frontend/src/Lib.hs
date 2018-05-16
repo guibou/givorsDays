@@ -80,7 +80,7 @@ makeCalendar :: MonadWidget t m
              => CurrentMonth -- ^ The month to be displayed
              -> Calendar  -- ^ The current status of the days
              -> m (Event t (Day,Int))  -- ^ The updated days
-makeCalendar currentMonth calendar = mdo
+makeCalendar currentMonth@(CurrentMonth _ cm) calendar = mdo
   let
     (startingDay, nbWeeks) = getStartingDay currentMonth
 
@@ -92,27 +92,29 @@ makeCalendar currentMonth calendar = mdo
       el "tbody" $ for [0.. (nbWeeks - 1)] $ \weekNo ->
           el "tr" $ for [0..6] $ \dayNo -> do
             let dayOffset = (fromIntegral weekNo) * 7 + dayNo
-                currentDay = addDays dayOffset startingDay
+                currentDay@(Day _ dm _) = addDays dayOffset startingDay
+                outOfMonth = cm /= dm
 
-            calendarCell currentDay (readCal calendar currentDay)
+            calendarCell currentDay (readCal calendar currentDay) outOfMonth
 
   pure (leftmost (mconcat combos))
 
 -- * Calendar Cell
 
-dayClassName :: Int -> Text
-dayClassName i = "day" <> tShow i
+dayClassName :: Bool -> Int -> Text
+dayClassName b i = "day" <> tShow i <> (if b then " outOfMonth" else "")
 
 -- | Calendar cell widget
 calendarCell :: MonadWidget t m
              => Day -- ^ The day to display
              -> Int -- ^ The current value
+             -> Bool -- ^ is this day out of currentMonth
              -> m (Event t (Day, Int)) -- ^ Day modification event
-calendarCell currentDay@(Day _ _ d) initValue = mdo
+calendarCell currentDay@(Day _ _ d) initValue outOfMonth = mdo
   value <- cycle4 initValue (domEvent Click tdClick)
-  (tdClick, _) <- elDynClass' "td" (dayClassName  <$> value) $ do
-    elClass "div" "monthName" $ text (getMonthLabel currentDay)
+  (tdClick, _) <- elDynClass' "td" (dayClassName outOfMonth  <$> value) $ do
     elClass "div" "dayName" $ text (tShow d)
+    elClass "div" "monthName" $ text (getMonthLabel currentDay)
     el "div" $ display value
 
   pure ((currentDay,) <$> updated value)

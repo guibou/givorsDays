@@ -6,7 +6,6 @@
 {-# LANGUAGE TupleSections #-}
 {-# Language TemplateHaskell #-}
 {-# Language TypeApplications #-}
-{-# LANGUAGE CPP #-}
 
 module Lib where
 
@@ -22,16 +21,11 @@ import Data.Map (Map)
 
 import Data.Time (Day, addDays)
 
-#ifdef USE_WARP
 import Reflex.Dom.Core
-#else
-import Reflex.Dom
-#endif
 
 import Date
 import Utils
 import WidgetMonth
-import CSS
 import WebStorage
 import Swip
 
@@ -57,7 +51,8 @@ updateCal (day, n) cal = Map.insert day n cal
 readCal :: Calendar -> Day -> Int
 readCal calendar day = fromMaybe 0 $ Map.lookup day calendar
 
-libMainWidget = mainWidgetWithCss css $ mdo
+app :: MonadWidget t m => m ()
+app = mdo
     currentCal <- webStorageDyn @Calendar "calendar" mempty (attachWith (flip updateCal) (current currentCal) updates)
 
     swipE <- swipEvent elCalendar def

@@ -8,7 +8,9 @@ import Data.Text.Encoding (encodeUtf8)
 import Clay
 
 import Data.Monoid ((<>))
+import Data.ByteString (ByteString)
 
+css :: ByteString
 css = (encodeUtf8 . toStrict . render) $ do
   table ? borderCollapse collapse
   td ? do

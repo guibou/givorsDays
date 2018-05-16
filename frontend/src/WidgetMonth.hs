@@ -7,6 +7,8 @@ import Control.Monad.IO.Class (liftIO)
 
 import Data.Time (utctDay, getCurrentTime)
 
+import Data.Text (Text)
+
 import Reflex.Dom.Core
 
 import Date
@@ -38,4 +40,5 @@ monthSelectWidget prevE nextE = do
 
   pure currentMonth
 
+formatMonth :: CurrentMonth -> Text
 formatMonth (CurrentMonth y m) = monthsList !! (m - 1) <> " " <> tShow y

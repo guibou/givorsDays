@@ -1,8 +1,10 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 -- This module is only used for android compilation
 import Lib
+import CSS
+
+import Reflex.Dom
 
 main :: IO ()
-main = libMainWidget
+main = mainWidgetWithCss css app

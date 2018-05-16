@@ -34,9 +34,9 @@ data SwipConfig = SwipConfig
 
 instance Default SwipConfig where
   def = SwipConfig
-    { swipThresholdPx = 50
-    , swipThresholdTime = 0.2
-    , swipDiagThreshold =  20
+    { swipThresholdPx = 70
+    , swipThresholdTime = 1
+    , swipDiagThreshold =  30
     }
 
 -- * Swip Event handler

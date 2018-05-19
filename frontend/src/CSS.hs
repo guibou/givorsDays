@@ -59,6 +59,13 @@ css = (encodeUtf8 . toStrict . render) $ do
     margin (0 :: Size LengthUnit) 0 0 0
     padding (0 :: Size LengthUnit) 0 0 0
 
+    -- fading effect when calendar change
+    "td" ? do
+      animationName "expand"
+      animationDuration (sec 0.5)
+
+      keyframes "expand" [(0, Clay.opacity 0)]
+
   ".calendar" |> div ? do
     star <> table  <? do
       height (vh 100 @-@ em 2.7)

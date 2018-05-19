@@ -7,6 +7,7 @@
 
   shells = {
     ghc = ["frontend"]; # ["common" "backend" "frontend"];
+    ghc8_2_1 = ["frontend"]; # ["common" "backend" "frontend"];
     ghcjs = ["frontend"]; # ["common" "frontend"];
   };
 

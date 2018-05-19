@@ -48,9 +48,11 @@ swipEvent :: _ => El a -> SwipConfig -> m (Event t SwipDirection)
 swipEvent widget conf = do
   t0 <- tagTime (domEvent Touchstart widget)
   t1 <- tagTime (domEvent Touchend widget)
+  t2 <- tagTime (domEvent Touchcancel widget)
   d <- foldDyn (compactSwip conf) NoSwip (leftmost [
                              (StartSwip . unsafeExtractXY) <$> t0,
-                             (EndSwip . unsafeExtractXY) <$> t1
+                             (EndSwip . unsafeExtractXY) <$> t1,
+                             (EndSwip . unsafeExtractXY) <$> t2
                              ])
 
   pure $ fforMaybe (updated d) $ \e -> case e of

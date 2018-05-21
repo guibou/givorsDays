@@ -1,10 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Google.RequestUtils where
 
-import Data.Semigroup
+import Protolude
 
 import qualified Data.Text as Text
-import Data.Text (Text)
 import Reflex.Dom
 import Data.Aeson
 

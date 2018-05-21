@@ -2,17 +2,14 @@
 
 module WidgetMonth where
 
-import Data.Monoid ((<>))
-import Control.Monad.IO.Class (liftIO)
+import Protolude
+import Unsafe
 
 import Data.Time (utctDay, getCurrentTime)
-
-import Data.Text (Text)
 
 import Reflex.Dom.Core
 
 import Date
-import Utils
 
 -- | A month selection widget composed of a year input and month input
 monthSelectWidget :: _
@@ -41,4 +38,4 @@ monthSelectWidget prevE nextE = do
   pure currentMonth
 
 formatMonth :: CurrentMonth -> Text
-formatMonth (CurrentMonth y m) = monthsList !! (m - 1) <> " " <> tShow y
+formatMonth (CurrentMonth y m) = monthsList `unsafeIndex` (m - 1) <> " " <> show y

@@ -1,20 +1,17 @@
 {-# LANGUAGE OverloadedStrings, FlexibleContexts, TypeApplications, DeriveGeneric, GeneralizedNewtypeDeriving, DuplicateRecordFields, DeriveAnyClass #-}
 module Google.Drive where
 
+import Protolude
+
 import Reflex.Dom.Core
-import Data.Semigroup
-import qualified Data.Text as Text
-import Data.Text (Text)
 import Data.Aeson
+
 import qualified Data.ByteString as ByteString
-import Data.ByteString.Lazy (toStrict)
-import GHC.Generics
+import qualified Data.ByteString.Lazy as ByteString.Lazy
 
 import Data.Text.Encoding (encodeUtf8)
 
 import Google.RequestUtils
-
-import Data.ByteString (ByteString)
 
 -- * Second part, get the token
 
@@ -52,12 +49,12 @@ reqCreateFile :: ToJSON t => t -> Text -> XhrRequest ByteString
 reqCreateFile content filenamePattern = xhrRequest "POST" ("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart") (XhrRequestConfig headers Nothing Nothing Nothing mparts False AllHeaders)
   where
     headers = "Content-Type" =: "multipart/related; boundary=foo_bar_baz"
-              <> "Content-Length" =: (Text.pack (show (ByteString.length mparts)))
+              <> "Content-Length" =: (show (ByteString.length mparts))
 
     mparts :: ByteString
     mparts = multiPart "foo_bar_baz" [
       ("application/json;charset=UTF-8", "{'name' : '" <> encodeUtf8 filenamePattern <> "', 'mimeType' : 'text/plain'}")
-      , ("text/plain",(toStrict $ encode content))
+      , ("text/plain",(ByteString.Lazy.toStrict $ encode content))
       ]
 
 -- * Utils

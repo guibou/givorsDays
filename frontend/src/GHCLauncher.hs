@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module GHCLauncher where
 
+import Protolude
+
 import CSS
 
 import Reflex.Dom.Core (mainWidgetWithCss)

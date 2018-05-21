@@ -1,16 +1,9 @@
 module Utils where
 
-import qualified Data.Text as Text
-import Data.Text (Text)
+import Protolude
+import qualified Unsafe
 
 import Data.List (groupBy)
-import Data.Function (on)
-
-toIntUnsafe :: Text -> Integer
-toIntUnsafe = read . Text.unpack
-
-tShow :: Show t => t -> Text
-tShow = Text.pack . show
 
 {- |
    >>> groupOn head ["aoeu", "aiii", "bou"]
@@ -19,4 +12,4 @@ tShow = Text.pack . show
 
 groupOn :: Eq b => (a -> b) -> [a] -> [(b, [a])]
 groupOn f l = let groups = groupBy (on (==) f) l
-              in map (\group -> (f (head group), group)) groups
+              in map (\grp -> (f (Unsafe.unsafeHead grp), grp)) groups

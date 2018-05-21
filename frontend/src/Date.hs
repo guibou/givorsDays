@@ -4,6 +4,9 @@
 
 module Date where
 
+import Protolude
+import Unsafe
+
 import qualified Data.Text as Text
 import Data.Text (Text)
 
@@ -11,10 +14,6 @@ import Data.Time (fromGregorian, toGregorian, Day)
 import Data.Time.Calendar.WeekDate (toWeekDate, fromWeekDate)
 import Data.Time.Calendar.MonthDay
 import Data.Time.Calendar.OrdinalDate
-
-import Data.Monoid ((<>))
-
-import Utils
 
 -- | French listing of month names
 monthsList :: [Text]
@@ -46,10 +45,10 @@ pattern Day y m d <- (toGregorian -> (y, m, d))
 getMonthLabel :: Day -> Text
 getMonthLabel (Day y m d) = ifMonth <> ifYear
   where ifMonth = if d == 1
-                  then " " <> monthsList !! (m - 1)
+                  then " " <> monthsList `unsafeIndex` (m - 1)
                   else ""
         ifYear = if m == 1 && d == 1
-                 then " " <> tShow y
+                 then " " <> show y
                  else ""
 
 -- | Returns the first Monday before the begining of this month

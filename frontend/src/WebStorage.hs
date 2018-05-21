@@ -3,7 +3,8 @@ module WebStorage
   (webStorageDyn)
 where
 
-import Data.Text (Text)
+import Protolude
+
 import Reflex.Dom.Core
 import Data.Aeson
 import qualified Data.ByteString.Lazy as ByteString
@@ -11,8 +12,6 @@ import qualified Data.ByteString.Lazy as ByteString
 import Language.Javascript.JSaddle
 import Data.Text.Encoding (encodeUtf8, decodeUtf8)
 import Language.Javascript.JSaddle.Object (jsg)
-
-import Data.Maybe (fromMaybe)
 
 -- * Web Storage
 

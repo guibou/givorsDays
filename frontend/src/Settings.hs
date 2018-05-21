@@ -2,34 +2,27 @@
 
 module Settings where
 
+import Protolude
+import Unsafe
+
 import Reflex.Dom.Core
 
-import Data.Text (Text)
-import qualified Data.Text as Text
-
-import Data.ByteString.Lazy (toStrict)
+import qualified Data.ByteString.Lazy as ByteString.Lazy
 
 import Data.Aeson
-import Data.Semigroup
 
 import Google.Drive
 import Google.OAuth
 
-import GHC.Generics
-
 import MyOAuthConfig
 import Lib
 
-import Data.Functor (($>))
-import Data.Traversable (for)
 import WebStorage
-
-import Prelude hiding (id)
 
 settingsView :: MonadWidget a m => m ()
 settingsView = mdo
   currentStatus <- webStorageDyn @AppStatus "appStatus" (NotLogged Nothing) upStatus
-  currentAccessToken <- current <$> webStorageDyn @AccessToken "accessToken" nullAccessToken (getFirst <$> upAccessToken)
+  currentAccessToken <- current <$> webStorageDyn @AccessToken "accessToken" nullAccessToken (unsafeFromJust . getFirst <$> upAccessToken)
 
   currentCal <- webStorageDyn @Calendar "calendar" mempty upCal
 
@@ -65,7 +58,7 @@ widgetStatus _ _ (NotLogged maybeCal) = do
     answer <- authenticate oauthConfig (current (value loginKey) `tag` loginEvnt)
 
     let
-      displayStatus (Left err) = "Error: " <> (Text.pack (show err))
+      displayStatus (Left err) = "Error: " <> show err
       displayStatus (Right _) = "OK"
 
       authEvent (Left _) = Nothing
@@ -82,7 +75,7 @@ widgetStatus _ _ (NotLogged maybeCal) = do
     dynText textResult
 
     let loggedEvent = fmapMaybe authEvent answer
-    tellEvent (First . fst <$> loggedEvent)
+    tellEvent (First . Just . fst <$> loggedEvent)
 
     pure (snd <$> loggedEvent, never)
 widgetStatus currentAccessToken _currentCal status@(LoggedNoFile refreshToken) = do
@@ -96,7 +89,7 @@ widgetStatus currentAccessToken _currentCal status@(LoggedNoFile refreshToken) =
 
    toFileList :: MonadWidget t m => Either (Maybe Data.Aeson.Value) ListFilesResponse -> m (Event t Text)
    toFileList t = case t of
-     Left err -> text ("Error: " <> (Text.pack (show err))) >> pure never
+     Left err -> text ("Error: " <> show err) >> pure never
      Right lsFiles -> el "ul" $ do
        case files lsFiles of
          [] -> text "No files" >> pure never
@@ -146,7 +139,7 @@ widgetStatus currentAccessToken currentCal (LoggedWithFile fileId refreshToken) 
   updateCalEvent <- app currentCal
 
   -- Xhr request to update the calendar stored online
-  _ <- performRequestAsyncWithRefreshToken @Data.Aeson.Value oauthConfig refreshToken currentAccessToken (reqUpdate fileId . toStrict . encode <$> updateCalEvent)
+  _ <- performRequestAsyncWithRefreshToken @Data.Aeson.Value oauthConfig refreshToken currentAccessToken (reqUpdate fileId . ByteString.Lazy.toStrict . encode <$> updateCalEvent)
 
   pure $ (leftmost [
            changeFile $> (LoggedNoFile refreshToken),

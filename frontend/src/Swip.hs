@@ -12,9 +12,12 @@ module Swip
   , SwipConfig(..)
   )
   where
+
+import Protolude
+import Unsafe
+
 import Data.Time
 import Reflex.Dom.Core
-import Control.Monad.IO.Class
 
 import Data.Default
 
@@ -72,7 +75,7 @@ tagTime e = performEvent $ ffor e $ \v -> do
 unsafeExtractXY :: (TouchEventResult, t) -> (t, Int, Int)
 unsafeExtractXY (e, time) = let
   ct = _touchEventResult_changedTouches e
-  at = head ct
+  at = unsafeHead ct
   in (time, _touchResult_screenX at, _touchResult_screenY at)
 
 data SwipStatus

@@ -30,8 +30,10 @@ library
                      , aeson
                      , jsaddle
                      , data-default
+                     , protolude
+  default-extensions:        NoImplicitPrelude
 
-  ghc-options: -Wall -Wno-partial-type-signatures
+  ghc-options: -Wall -Wno-partial-type-signatures -Wincomplete-uni-patterns
 
   if os(linux)
     build-depends:

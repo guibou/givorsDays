@@ -27,8 +27,7 @@ module Google.OAuth
 
 where
 
-import GHC.Generics
-import Data.Semigroup
+import Protolude
 
 import Data.Text (Text)
 import Data.Aeson
@@ -191,7 +190,7 @@ performRequestsAsyncWithRefreshToken config tRefresh bAccess reqEvent = do
   -- Refresh the token
   let
     fOkCredential (_, Left _) = Nothing
-    fOkCredential ((payload, req), Right (RefreshResponse{..})) = Just ((payload, wrapRequest (AccessToken access_token) req), First (AccessToken access_token))
+    fOkCredential ((payload, req), Right (RefreshResponse{..})) = Just ((payload, wrapRequest (AccessToken access_token) req), First (Just (AccessToken access_token)))
 
     okCredential = fmapMaybe fOkCredential reqRefreshCredential
 

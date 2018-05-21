@@ -9,15 +9,9 @@
 
 module Lib where
 
-import Data.Traversable (for)
-import Data.Foldable (for_)
-import Data.Maybe (fromMaybe)
-import Data.Monoid ((<>))
-import Data.Functor (($>))
+import Protolude
 
-import Data.Text (Text)
 import qualified Data.Map as Map
-import Data.Map (Map)
 
 import Data.Time (Day, addDays)
 
@@ -99,7 +93,7 @@ makeCalendar currentMonth@(CurrentMonth _ cm) calendar = mdo
 -- * Calendar Cell
 
 dayClassName :: Bool -> Int -> Text
-dayClassName b i = "day" <> tShow i <> (if b then " outOfMonth" else "")
+dayClassName b i = "day" <> show i <> (if b then " outOfMonth" else "")
 
 -- | Calendar cell widget
 calendarCell :: MonadWidget t m
@@ -110,7 +104,7 @@ calendarCell :: MonadWidget t m
 calendarCell currentDay@(Day _ _ d) initValue outOfMonth = mdo
   value <- cycle4 initValue (domEvent Click tdClick)
   (tdClick, _) <- elDynClass' "td" (dayClassName outOfMonth  <$> value) $ do
-    elClass "div" "dayName" $ text (tShow d)
+    elClass "div" "dayName" $ text (show d)
     elClass "div" "monthName" $ text (getMonthLabel currentDay)
     el "div" $ display value
 
@@ -137,5 +131,5 @@ makeResume calendar = do
 
   for_ (groupOn ((\(Day y _ _) -> y) . fst) items) $ \(year, months) -> mdo
     let countYear = sum (map snd months)
-    el "strong" $ text (tShow year)
-    text (": " <> tShow countYear <> " ")
+    el "strong" $ text (show year)
+    text (": " <> show countYear <> " ")

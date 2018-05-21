@@ -16,7 +16,7 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
 
-  exposed-modules:     Lib, Date, Utils, WidgetMonth, CSS, WebStorage, Swip, Settings, Google.Drive, Google.OAuth, Google.RequestUtils
+  exposed-modules:     Lib, Date, Utils, WidgetMonth, CSS, WebStorage, Swip, Settings, Google.Drive, Google.OAuth, Google.RequestUtils, MyOAuthConfig
   build-depends:       base >= 4.7 && < 5
                      , reflex
                      , text

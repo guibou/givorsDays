@@ -1,10 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 -- This module is only used for android compilation
-import Lib
+import Settings
 import CSS
 
 import Reflex.Dom
 
 main :: IO ()
-main = mainWidgetWithCss css app
+main = mainWidgetWithCss css settingsView

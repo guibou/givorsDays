@@ -26,7 +26,6 @@ import Reflex.Dom.Core
 import Date
 import Utils
 import WidgetMonth
-import WebStorage
 import Swip
 
 -- * Intro
@@ -51,10 +50,8 @@ updateCal (day, n) cal = Map.insert day n cal
 readCal :: Calendar -> Day -> Int
 readCal calendar day = fromMaybe 0 $ Map.lookup day calendar
 
-app :: MonadWidget t m => m ()
-app = mdo
-    currentCal <- webStorageDyn @Calendar "calendar" mempty (attachWith (flip updateCal) (current currentCal) updates)
-
+app :: MonadWidget t m => Dynamic t Calendar -> m (Event t Calendar)
+app currentCal = mdo
     swipE <- swipEvent elCalendar def
 
     currentMonth <- elClass "div" "header" $ do
@@ -73,7 +70,7 @@ app = mdo
 
       pure (switchPromptlyDyn updates)
 
-    blank
+    pure (attachWith (flip updateCal) (current currentCal) updates)
 
 -- | Creates a calender
 makeCalendar :: MonadWidget t m

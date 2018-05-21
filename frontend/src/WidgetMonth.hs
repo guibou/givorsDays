@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, PartialTypeSignatures #-}
 
 module WidgetMonth where
 
@@ -15,7 +15,7 @@ import Date
 import Utils
 
 -- | A month selection widget composed of a year input and month input
-monthSelectWidget :: MonadWidget t m
+monthSelectWidget :: _
                   => Event t ()
                   -> Event t ()
                   -> m (Dynamic t CurrentMonth)

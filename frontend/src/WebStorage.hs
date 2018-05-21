@@ -9,9 +9,8 @@ import Data.Aeson
 import qualified Data.ByteString.Lazy as ByteString
 
 import Language.Javascript.JSaddle
-import Control.Lens ((^.))
 import Data.Text.Encoding (encodeUtf8, decodeUtf8)
-import Language.Javascript.JSaddle.Object (jsg, js)
+import Language.Javascript.JSaddle.Object (jsg)
 
 import Data.Maybe (fromMaybe)
 
@@ -26,7 +25,7 @@ webStorageDyn name initVal evtUpdate = do
 
 webStorageInit :: forall t m. (MonadJSM m, FromJSON t) => Text -> m (Maybe t)
 webStorageInit name = liftJSM $ do
-    jsVal <- jsg @Text "localStorage" >>= (^. js name)
+    jsVal <- jsg @Text "localStorage" >>= (! name)
     v <- fromJSVal @Text jsVal
 
     case v of

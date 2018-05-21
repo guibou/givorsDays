@@ -29,7 +29,6 @@ library
                      , reflex-dom-core
                      , aeson
                      , jsaddle
-                     , lens
                      , data-default
 
   ghc-options: -Wall -Wno-partial-type-signatures

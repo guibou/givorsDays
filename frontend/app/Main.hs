@@ -3,8 +3,7 @@
 -- This module is only used for android compilation
 import Settings
 import CSS
-
-import Reflex.Dom
+import App
 
 main :: IO ()
-main = mainWidgetWithCss css settingsView
+main = App.go

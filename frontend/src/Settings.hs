@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, FlexibleContexts, TypeApplications, ExtendedDefaultRules, RecursiveDo, PartialTypeSignatures, DeriveAnyClass, DeriveGeneric, ScopedTypeVariables, DuplicateRecordFields, RecordWildCards, TypeFamilies, TupleSections #-}
+{-# LANGUAGE OverloadedStrings, FlexibleContexts, TypeApplications, RecursiveDo, PartialTypeSignatures, DeriveAnyClass, DeriveGeneric, ScopedTypeVariables, DuplicateRecordFields, RecordWildCards, TypeFamilies, TupleSections #-}
 
 module Settings where
 

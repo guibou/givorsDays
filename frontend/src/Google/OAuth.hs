@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, FlexibleContexts, TypeApplications, DeriveGeneric, GeneralizedNewtypeDeriving, DerivingStrategies, ScopedTypeVariables, DuplicateRecordFields, RecordWildCards, DeriveAnyClass, PartialTypeSignatures, LambdaCase #-}
+{-# LANGUAGE OverloadedStrings, FlexibleContexts, TypeApplications, DeriveGeneric, GeneralizedNewtypeDeriving, ScopedTypeVariables, DuplicateRecordFields, RecordWildCards, DeriveAnyClass, PartialTypeSignatures, LambdaCase, TupleSections #-}
 
 {-| OAuth token based authentification for Google services
 
@@ -41,13 +41,11 @@ import Google.RequestUtils
 -- | A Refresh token, used internally, you must save it (securly) if
 --   you want to use the auto-refresh request features.
 newtype RefreshToken = RefreshToken Text
-  deriving (Show, Generic)
-  deriving newtype (FromJSON, ToJSON)
+  deriving (Show, Generic, FromJSON, ToJSON)
 
 -- | Access token used by many requests
 newtype AccessToken = AccessToken Text
-  deriving (Show, Generic)
-  deriving newtype (FromJSON, ToJSON)
+  deriving (Show, Generic, FromJSON, ToJSON)
 
 -- | A null access token, it represents an unconnected status
 nullAccessToken :: AccessToken

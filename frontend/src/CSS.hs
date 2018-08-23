@@ -50,6 +50,24 @@ css = (encodeUtf8 . toStrict . render) $ do
     margin (0 :: Size LengthUnit) 0 0 0
     padding (0 :: Size LengthUnit) 0 0 0
 
+  ".burger" ? do
+    "button" ? do
+      fontSize (em 2)
+
+    ".syncError" ? "button" ? do
+      backgroundColor red
+
+    ".syncOk" ? "button" ? do
+      backgroundColor green
+
+    ".syncRunning" ? "button" ? do
+      backgroundColor grey
+
+    position absolute
+    top (px 3)
+    left (px 3)
+    zIndex 1
+
   ".calendar" ? do
     position absolute
     top (em 2.7)
@@ -75,6 +93,7 @@ css = (encodeUtf8 . toStrict . render) $ do
 
   ".header" ? do
     fontSize (em 1.6)
+    paddingLeft (em 4)
 
   ".header button" ? do
     fontSize (em 1.2)

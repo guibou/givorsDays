@@ -89,7 +89,6 @@ data TokenResponse = TokenResponse
   }
   deriving (Show, Generic, FromJSON, ToJSON)
 
-{- -- Not used for now
 data InvalidCredentialsResponse = InvalidCredentialsResponse
   { error :: ErrorsCredentials
   , code :: Int
@@ -110,7 +109,6 @@ data ErrorCredentials = ErrorCredentials
   , location :: Text
   }
   deriving (Show, Generic, FromJSON, ToJSON)
--}
 
 -- * Request Token
 

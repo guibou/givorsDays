@@ -132,18 +132,48 @@ widgetStatus currentAccessToken _currentCal status@(LoggedNoFile refreshToken) =
            ],
            fmapMaybe calEvent answerFileContent)
 
-widgetStatus currentAccessToken currentCal (LoggedWithFile fileId refreshToken) = do
-  logOut <- button "LogOut"
-  changeFile <- button "ChangeFile"
+widgetStatus currentAccessToken currentCal (LoggedWithFile fileId refreshToken) = mdo
+  evtWorkflow <- elClass "div" "burger" $ do
+    burgerClick <- button "⚙"
+    text " "
+
+    _forceRefresh <- elDynAttr "span" (refreshStatus <$> syncStatus) $ button "↻"
+
+    showMenu <- toggle False burgerClick
+
+    evt <- dyn (menu <$> showMenu)
+    evt' <- switchHold never evt
+    pure evt'
 
   updateCalEvent <- app currentCal
 
+  debouncedUpdateCalEvent <- debounce 2 updateCalEvent
+
   -- Xhr request to update the calendar stored online
-  _ <- performRequestAsyncWithRefreshToken @Data.Aeson.Value oauthConfig refreshToken currentAccessToken (reqUpdate fileId . ByteString.Lazy.toStrict . encode <$> updateCalEvent)
+  upRequest <- performRequestAsyncWithRefreshToken @FileResponse oauthConfig refreshToken currentAccessToken (reqUpdate fileId . ByteString.Lazy.toStrict . encode <$> debouncedUpdateCalEvent)
 
-  pure $ (leftmost [
-           changeFile $> (LoggedNoFile refreshToken),
-           logOut $> NotLogged (Just fileId)
-           ],
-           updateCalEvent)
+  let isOk (Right _) = SyncOk
+      isOk (Left _) = SyncError
 
+  syncStatus <- holdDyn SyncOk (leftmost [updateCalEvent $> SyncRunning,
+                                          isOk <$> upRequest])
+
+  pure $ (evtWorkflow, updateCalEvent)
+
+  where
+    menu False = pure never
+    menu True = elClass "div" "menu" $ do
+      logOut <- button "LogOut"
+      changeFile <- button "ChangeFile"
+
+      pure $ leftmost [
+        changeFile $> (LoggedNoFile refreshToken),
+        logOut $> NotLogged (Just fileId)
+        ]
+
+refreshStatus :: RefreshStatus -> Map Text Text
+refreshStatus SyncOk = ("class" =: "syncOk")
+refreshStatus SyncError = ("class" =: "syncError")
+refreshStatus SyncRunning = ("class" =: "syncRunning")
+
+data RefreshStatus = SyncOk | SyncError | SyncRunning
